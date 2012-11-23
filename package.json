@@ -1,0 +1,17 @@
+{
+  "name": "boardgrep",
+  "subdomain": "rulura.fun",
+  "scripts": {
+    "start": "app.js"
+  },
+  "version": "0.0.0-14",
+  "engines": {
+    "node": "0.6.x"
+  },
+  "dependencies": {
+    "jquery": "*",
+    "jsdom": "*",
+    "underscore": "*",
+    "nodemailer": "*"
+  }
+}

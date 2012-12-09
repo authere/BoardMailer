@@ -4,23 +4,6 @@ var _ = require('underscore');
 var nodemailer = require("nodemailer");
 var URL = require("url");
 var fs = require("fs");
-
-
-
-/*
-var redis = require('redis');
-
-
-//redis://nodejitsu:6bf4b2d118c14f8aacf08a199f0c59ea@drum.redistogo.com:9909/
-var rds = redis.createClient(9099, 'subdomain.redistogo.com');
-client.auth('6bf4b2d118c14f8aacf08a199f0c59ea', function (err) {
-    if (err) { throw err; }
-    console.log("redis connected");
-    // You are now authed with your redis.
-});
-*/
-
-var halfHour = (0.5 * 60 * 60 * 1000); // 30min
 var oneHour = (60 * 60 * 1000); // 1 hour
 var twoHour = (2 * 60 * 60 * 1000); // 2 hour
 var threeHour = (3 * 60 * 60 * 1000); // 3 hour

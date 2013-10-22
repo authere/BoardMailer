@@ -4,6 +4,7 @@ var _ = require('underscore');
 var nodemailer = require("nodemailer");
 var URL = require("url");
 var fs = require("fs");
+var halfHour = (0.5 * 60 * 60 * 1000); // 30min
 var oneHour = (60 * 60 * 1000); // 1 hour
 var twoHour = (2 * 60 * 60 * 1000); // 2 hour
 var threeHour = (3 * 60 * 60 * 1000); // 3 hour
@@ -16,10 +17,13 @@ var cfgFile = 'board.cfg';
 var mailSentListFile = 'mailSentList.cfg';
 var board_cfg;
 var now;
+var timeoutId;
+var mailSentNum = 0;
 
 function traverseBoard(url, name, cfg, page) {
     $.get(url + "&page=" + page, function (data) {
         var DontIgnore = true;
+        var urlItem;
         console.log("BOARD:" + name + " page=" + page);
         var list = $(data).find(cfg.listSelector);
         listLen = list.length;
@@ -32,7 +36,7 @@ function traverseBoard(url, name, cfg, page) {
             td = td.next('.post_subject');
             subj = td.find('a').html();
             rcnt = td.find('span').html();
-            if (rcnt !== null) {
+            if (rcnt != null) {
                 rcnt = rcnt.match(/\d+/);
                 if (rcnt !== null) { rcnt = rcnt[0]; }
             }
@@ -53,7 +57,8 @@ function traverseBoard(url, name, cfg, page) {
                     && (rcnt > cfg.rcnt)) {
                 if (!mailSentList[id]) {
                     console.log(id + " " + (new Date(time)) + " " + vcnt + ":" + rcnt + "-" + subj);
-                    $.get(url + '&wr_id=' + id, function (data) {
+                    urlItem = url + '&wr_id=' + id;
+                    $.get(urlItem, function (data) {
                         var boardUrl = URL.parse(url);
                         var hostUrl = boardUrl.protocol + "//" + boardUrl.hostname;
                         var relUrl = dirname(url);
@@ -83,7 +88,9 @@ function traverseBoard(url, name, cfg, page) {
                         //var style = '<style>li{float:left;}\n</style>\n';
                         var style = '';
                         //console.log($(cnt).html() + $(repl).html());
-                        sendmail(name + " " + subj, style + $(cnt).html() + $(repl).html());
+                        var linkToItem = "<br><a href=" + urlItem + ">Link</a><br>";
+                        sendmail(name + " " + subj, style + $(cnt).html() + linkToItem + $(repl).html());
+                        mailSentNum++;
                         mailSentList[id] = now;
                     });
                 }
@@ -116,7 +123,7 @@ function sendmail(subj, data) {
 // setup e-mail data with unicode symbols
     var mailOptions = {
         from: "bdmon <sender@example.com>", // sender address
-        to: (process.env.EMAIL_RECIPANT || "should_be_valid@email.com"), // list of receivers
+        to: "rulura@gmail.com", // list of receivers
         subject: subj, // Subject line
         //text: "Hello world ✔", // plaintext body
         html: data // html body
@@ -129,9 +136,18 @@ function sendmail(subj, data) {
         } else {
             console.log("Message sent: " + response.message);
         }
-
-        // if you don't want to use this transport object anymore, uncomment following line
-        //smtpTransport.close(); // shut down the connection pool, no more messages
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+        }
+        mailSentNum--;
+        if (mailSentNum <= 0) {
+            timeoutId = setTimeout(function () {
+                smtpTransport.close(); // shut down the connection pool, no more messages
+                process.exit(0);
+                
+            }, 60000);
+        }
     });
 }
 process.on('exit', function () {
@@ -173,3 +189,12 @@ $.each(mailSentList, function (key, val) {
         delete mailSentList[key];
     }
 });
+
+
+process.on('uncaughtException', function (err) {
+  console.error('[uncaughtException] ' + err.stack);
+  setTimeout(function () {
+    process.exit(1);
+  }, 500);
+});
+

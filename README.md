@@ -4,5 +4,7 @@ export EMAIL=your_mail_id@email.com
 export EMAILPASS=your_email_pass
 export EMAIL_RECIPANT=list_of_recipant_emails@email.com
 
-## execute run.sh
-> run.sh
+## execute boardmon.sh at crontab
+> crontab -l
+0,30 * * * * /path_to_BoardMailer/boardmon.sh
+

@@ -111,19 +111,20 @@ function dirname(path) {
 
 function sendmail(subj, data) {
 
+    var auth =  {
+            user: (process.env.EMAIL || "dontknow@gmail.com"),
+            pass: (process.env.EMAILPASS || "")
+        };
 // create reusable transport method (opens pool of SMTP connections)
     var smtpTransport = nodemailer.createTransport("SMTP", {
         service: "Gmail",
-        auth: {
-            user: (process.env.EMAIL || "dontknow@gmail.com"),
-            pass: (process.env.EMAILPASS || "")
-        }
+        auth: auth,
     });
 
 // setup e-mail data with unicode symbols
     var mailOptions = {
         from: "bdmon <sender@example.com>", // sender address
-        to: "rulura@gmail.com", // list of receivers
+        to: process.env.EMAIL_RECIPANT, // list of receivers
         subject: subj, // Subject line
         //text: "Hello world ✔", // plaintext body
         html: data // html body
@@ -145,8 +146,9 @@ function sendmail(subj, data) {
             timeoutId = setTimeout(function () {
                 smtpTransport.close(); // shut down the connection pool, no more messages
                 process.exit(0);
+                console.error('closing... the last mail sent');
                 
-            }, 60000);
+            }, 30000);
         }
     });
 }
